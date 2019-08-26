@@ -1,0 +1,57 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head> 
+<meta charset="UTF-8"> 
+<title>Title</title> 
+</head> 
+<body> 
+<div id="msg"></div> 
+<input type="file" id="myfile"> 
+<div id='log'></div>
+</body> 
+<script src="./jquery_1.8.3.js"></script>
+<script> 
+
+
+$('#myfile').change(function(){
+	var wsServer = 'ws://192.168.75.135:9501'; 
+	var websocket = new WebSocket(wsServer);
+	websocket.onopen = function (evt) { 
+		log('连接成功');
+		log(websocket.readyState);
+	}; 
+	websocket.onmessage = function (evt) { 
+		log("收到服务器消息:" + evt.data + "'\n");
+		var data = JSON.parse(evt.data);
+
+		if (data.msg == 'connect success') {
+            log('开始上传文件');
+        }
+
+        if (data.msg == 'upload success') {
+        	log('上传完成');
+        }else{
+        	// 开始上传文件
+			var file   = document.getElementById("myfile").files[0];
+			var reader = new FileReader();
+			reader.readAsDataURL(file);
+			reader.onload = function(e) {
+				var img_data = '{"type":"3","data":"' + this.result + '"}';
+	            websocket.send(img_data);
+	            log('正在上传数据...');
+	        }
+        }
+	};
+	websocket.onclose = function() {
+		console.log('连接已关闭！');
+		log('连接已关闭！');
+	};
+})
+
+//在消息框中打印内容
+function log(text) {
+    $("#log").append(text+"<br/>");
+}
+
+</script> 
+</html>
